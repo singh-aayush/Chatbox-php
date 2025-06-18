@@ -1,0 +1,136 @@
+<?php
+require_once __DIR__ . '/../php/config.php';
+require_once __DIR__ . '/../php/admin-functions.php';
+checkAdminAuth();
+
+if (!isset($_GET['id'])) {
+    header("Location: admin-users.php");
+    exit;
+}
+
+$user_id = $conn->real_escape_string($_GET['id']);
+$user = null;
+
+$stmt = $conn->prepare("SELECT * FROM users WHERE unique_id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 0) {
+    header("Location: admin-users.php");
+    exit;
+}
+
+$user = $result->fetch_assoc();
+
+// Handle error message
+$error = isset($_GET['error']) ? $_GET['error'] : null;
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit User</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Edit User: <?= htmlspecialchars($user['fname'] . ' ' . $user['lname']) ?></h2>
+            <a href="admin-users.php" class="btn btn-secondary">
+                <i class="fas fa-arrow-left mr-1"></i> Back to Users
+            </a>
+        </div>
+
+        <?php if ($error): ?>
+            <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
+
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">User Details</h5>
+            </div>
+            <div class="card-body">
+                <form action="../php/admin-edit-user.php" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="id" value="<?= $user['unique_id'] ?>">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="fname" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="fname" name="fname" 
+                                       value="<?= htmlspecialchars($user['fname']) ?>" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="lname" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="lname" name="lname" 
+                                       value="<?= htmlspecialchars($user['lname']) ?>" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="<?= htmlspecialchars($user['email']) ?>" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="new_password" class="form-label">New Password (leave blank to keep current)</label>
+                                <input type="password" class="form-control" id="new_password" name="new_password">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="designation" class="form-label">Designation</label>
+                                <input type="text" class="form-control" id="designation" name="designation" 
+                                       value="<?= htmlspecialchars($user['designation']) ?>">
+                            </div>
+                            <div class="mb-3">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="location" name="location" 
+                                       value="<?= htmlspecialchars($user['location']) ?>">
+                            </div>
+                            <div class="mb-3">
+                                <label for="employee_code" class="form-label">Employee Code</label>
+                                <input type="text" class="form-control" id="employee_code" name="employee_code" 
+                                       value="<?= htmlspecialchars($user['employee_code']) ?>">
+                            </div>
+                            <div class="mb-3">
+                                <label for="role" class="form-label">Role</label>
+                                <select class="form-select" id="role" name="role">
+                                    <option value="Employee" <?= $user['role'] === 'Employee' ? 'selected' : '' ?>>Employee</option>
+                                    <option value="Admin" <?= $user['role'] === 'Admin' ? 'selected' : '' ?>>Admin</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="image" class="form-label">Profile Image</label>
+                                <input type="file" class="form-control" id="image" name="image" accept=".jpg,.jpeg,.png">
+                                <?php if (!empty($user['img'])): ?>
+                                    <div class="mt-2">
+                                        <img src="../php/images/<?= htmlspecialchars($user['img']) ?>" 
+                                             class="img-thumbnail" width="100" height="100">
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="checkbox" name="remove_image" id="removeImage">
+                                            <label class="form-check-label" for="removeImage">Remove Current Image</label>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save mr-1"></i> Update User
+                        </button>
+                        <a href="admin-users.php" class="btn btn-secondary">
+                            <i class="fas fa-times mr-1"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
