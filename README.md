@@ -11,10 +11,6 @@ Move the entire project folders to the following paths:
 C:\xampp\htdocs\Chat-App
 C:\xampp\htdocs\Chat-App-Admin
 
-yaml
-Copy
-Edit
-
 ---
 
 ## ⚙️ Step 2: Update MySQL Configuration
@@ -23,9 +19,6 @@ Open the config file located at:
 
 C:\xampp\htdocs\Chat-App\php\config.php
 
-arduino
-Copy
-Edit
 
 In the file, you will find the following line:
 
